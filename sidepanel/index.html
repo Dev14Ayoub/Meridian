@@ -40,7 +40,9 @@
 
   <!-- Nav Tabs -->
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="brain">Session Brain</button>
+    <button class="tab-btn active" data-tab="brain">Brain</button>
+    <button class="tab-btn" data-tab="research">Research</button>
+    <button class="tab-btn" data-tab="history">History</button>
     <button class="tab-btn" data-tab="oracle">Oracle</button>
     <button class="tab-btn" data-tab="shield">Shield</button>
     <button class="tab-btn" data-tab="decision">Decision</button>
@@ -67,6 +69,87 @@
     <div class="brain-actions">
       <button class="action-btn" id="exportBtn">Export Session</button>
       <button class="action-btn ghost" id="clearBtn">Clear Memory</button>
+    </div>
+  </section>
+
+  <!-- ===== TAB: RESEARCH ===== -->
+  <section id="tab-research" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">🔬</div>
+      <div>
+        <h2>Research Assistant</h2>
+        <p>Deep research planning, synthesis &amp; execution</p>
+      </div>
+    </div>
+
+    <div class="research-input-row">
+      <input id="researchTopic" type="text" placeholder="What do you want to research?" />
+      <button id="buildPlanBtn" class="action-btn">Plan</button>
+    </div>
+
+    <div id="researchPlanBox" class="research-plan hidden">
+      <div class="plan-header">
+        <span id="planTopic" class="plan-topic-label"></span>
+        <button id="openAllSearchesBtn" class="action-btn small">Open All Searches</button>
+      </div>
+      <div class="plan-section">
+        <div class="plan-label">📋 Overview</div>
+        <div id="planOverview" class="plan-overview"></div>
+      </div>
+      <div class="plan-section">
+        <div class="plan-label">🔍 Search Queries</div>
+        <div id="planQueries" class="plan-queries"></div>
+      </div>
+      <div class="plan-section">
+        <div class="plan-label">🗂 Key Questions</div>
+        <ul id="planQuestions" class="plan-list"></ul>
+      </div>
+      <div class="plan-section">
+        <div class="plan-label">🕳️ Subtopics to Cover</div>
+        <div id="planSubtopics" class="plan-tags"></div>
+      </div>
+      <button class="action-btn full" id="synthesizeBtn" style="margin-top:10px">Synthesize Research So Far</button>
+    </div>
+
+    <div id="researchSynthesis" class="synthesis-box hidden">
+      <div class="synthesis-header">
+        <span>📄 Research Synthesis</span>
+        <button id="exportSynthesisBtn" class="action-btn small">Export</button>
+      </div>
+      <div id="synthesisText" class="synthesis-text"></div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: HISTORY ===== -->
+  <section id="tab-history" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">📅</div>
+      <div>
+        <h2>History &amp; Recaps</h2>
+        <p>Everything Meridian remembers, by date</p>
+      </div>
+    </div>
+
+    <div class="history-ask-row">
+      <input id="historyDateInput" type="text" placeholder='Ask: "What did I do last Monday?"' />
+      <button id="getRecapBtn" class="action-btn">Recap</button>
+    </div>
+
+    <div id="activeDatesList" class="active-dates"></div>
+
+    <div id="recapResult" class="recap-box hidden">
+      <div class="recap-meta">
+        <span id="recapDate" class="recap-date-label"></span>
+        <div class="recap-counts">
+          <span id="recapVisitCount" class="recap-badge"></span>
+          <span id="recapConvCount"  class="recap-badge blue"></span>
+        </div>
+        <button id="exportRecapBtn" class="action-btn small">Export</button>
+      </div>
+      <div id="recapText" class="recap-text"></div>
+
+      <div class="recap-sites-header">Websites Visited</div>
+      <div id="recapSitesList" class="recap-sites"></div>
     </div>
   </section>
 
@@ -273,6 +356,26 @@
       </div>
       <p class="setting-hint">Your key is stored locally and never sent anywhere except the Claude API.</p>
       <div id="keyStatus" class="key-status"></div>
+      <label class="setting-label" style="margin-top:8px">Voice Language</label>
+      <select id="voiceLangSelect" class="mode-select" style="width:100%">
+        <option value="auto">Auto-detect (recommended)</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="pt">Português</option>
+        <option value="ru">Русский</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="hi">हिन्दी</option>
+        <option value="tr">Türkçe</option>
+        <option value="nl">Nederlands</option>
+        <option value="pl">Polski</option>
+      </select>
+      <p class="setting-hint">Meridian will listen and respond in this language. Auto-detect works for most languages.</p>
     </div>
   </div>
 
