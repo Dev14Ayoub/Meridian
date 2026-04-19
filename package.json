@@ -1,0 +1,23 @@
+{
+  "name": "meridian",
+  "version": "1.0.0",
+  "description": "AI Browser Co-Pilot — a persistent cognitive layer on top of the internet",
+  "scripts": {
+    "icons": "node icons/generate-icons.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dev14Ayoub/Meridian.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Dev14Ayoub/Meridian/issues"
+  },
+  "homepage": "https://github.com/Dev14Ayoub/Meridian#readme",
+  "devDependencies": {
+    "canvas": "^3.2.3"
+  }
+}

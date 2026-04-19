@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Meridian — AI Browser Co-Pilot",
+  "version": "1.0.0",
+  "description": "Your persistent AI layer on top of the internet. Memory, insight, and intelligence across every tab.",
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "sidePanel",
+    "contextMenus",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Meridian"
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["sidepanel/*", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

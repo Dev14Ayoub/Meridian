@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Meridian</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="header">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="#7c3aed" stroke-width="1.5"/>
+      <line x1="12" y1="2" x2="12" y2="22" stroke="#7c3aed" stroke-width="1.5"/>
+      <ellipse cx="12" cy="12" rx="5" ry="10" stroke="#a78bfa" stroke-width="1"/>
+    </svg>
+    <span class="title">Meridian</span>
+    <span id="statusDot" class="status-dot"></span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <span id="pageCount" class="stat-val">—</span>
+      <span class="stat-lbl">Pages</span>
+    </div>
+    <div class="stat">
+      <span id="sessionMode" class="stat-val mode">General</span>
+      <span class="stat-lbl">Mode</span>
+    </div>
+  </div>
+
+  <button id="openPanel" class="open-btn">Open Meridian Panel</button>
+
+  <div class="quick-actions">
+    <button class="qa-btn" id="saveNow" title="Save current page now">💾 Save Page</button>
+    <button class="qa-btn" id="openSettings" title="Settings">⚙ Settings</button>
+  </div>
+
+  <div id="oracleSnip" class="oracle-snip hidden">
+    <span class="oracle-label">🔮 Oracle</span>
+    <span id="oracleText"></span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

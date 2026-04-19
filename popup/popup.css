@@ -1,0 +1,106 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #09090f;
+  --bg2:     #0f0f1a;
+  --bg3:     #16162a;
+  --border:  #1e1e3a;
+  --accent:  #7c3aed;
+  --accent2: #a78bfa;
+  --text:    #e2e8f0;
+  --text2:   #94a3b8;
+  --text3:   #64748b;
+  --green:   #10b981;
+}
+
+body {
+  width: 240px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c4b5fd;
+  flex: 1;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+.stats-row {
+  display: flex;
+  gap: 8px;
+}
+.stat {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+.stat-val  { display: block; font-size: 18px; font-weight: 800; color: var(--accent2); }
+.stat-val.mode { font-size: 12px; font-weight: 700; padding-top: 3px; }
+.stat-lbl  { display: block; font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.open-btn {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 9px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.open-btn:hover { background: #6d28d9; }
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+}
+.qa-btn {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 7px 6px;
+  border-radius: 7px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.qa-btn:hover { background: var(--border); color: var(--text); }
+
+.oracle-snip {
+  background: linear-gradient(135deg, #1e1b4b, #0f0f1a);
+  border: 1px solid #312e81;
+  border-radius: 8px;
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.oracle-snip.hidden { display: none; }
+.oracle-label { font-size: 10px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.5px; }
+#oracleText   { font-size: 11px; color: var(--text2); line-height: 1.4; }

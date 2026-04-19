@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meridian</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#7c3aed" stroke-width="1.5"/>
+        <line x1="12" y1="2" x2="12" y2="22" stroke="#7c3aed" stroke-width="1.5"/>
+        <ellipse cx="12" cy="12" rx="5" ry="10" stroke="#a78bfa" stroke-width="1"/>
+      </svg>
+      <span class="logo-text">Meridian</span>
+    </div>
+    <div class="header-right">
+      <select id="modeSelect" class="mode-select" title="Context Mode">
+        <option value="General">General</option>
+        <option value="Research">Research</option>
+        <option value="Study">Study</option>
+        <option value="Work">Work</option>
+        <option value="Debug">Debug</option>
+        <option value="Shopping">Shopping</option>
+      </select>
+      <button id="settingsBtn" class="icon-btn" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- Nav Tabs -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="brain">Session Brain</button>
+    <button class="tab-btn" data-tab="oracle">Oracle</button>
+    <button class="tab-btn" data-tab="shield">Shield</button>
+    <button class="tab-btn" data-tab="decision">Decision</button>
+    <button class="tab-btn" data-tab="graph">Graph</button>
+  </nav>
+
+  <!-- ===== TAB: SESSION BRAIN ===== -->
+  <section id="tab-brain" class="tab-content active">
+    <div class="chat-container" id="chatContainer">
+      <div class="welcome-msg">
+        <div class="welcome-icon">🧠</div>
+        <p>Ask me anything about your browsing session. I remember everything you've read.</p>
+        <div class="quick-prompts">
+          <button class="quick-btn" data-q="What have I been researching today?">Today's research</button>
+          <button class="quick-btn" data-q="What am I still missing in my research?">Knowledge gaps</button>
+          <button class="quick-btn" data-q="Summarize my session">Session summary</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Ask about your browsing session..." />
+      <button id="chatSend" class="send-btn">↑</button>
+    </div>
+    <div class="brain-actions">
+      <button class="action-btn" id="exportBtn">Export Session</button>
+      <button class="action-btn ghost" id="clearBtn">Clear Memory</button>
+    </div>
+  </section>
+
+  <!-- ===== TAB: ORACLE ===== -->
+  <section id="tab-oracle" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">🔮</div>
+      <div>
+        <h2>Oracle</h2>
+        <p>Predicts what you'll need next based on your pattern</p>
+      </div>
+    </div>
+    <div id="oraclePrediction" class="oracle-box">
+      <div class="loading-state">Visit a few pages to activate Oracle predictions.</div>
+    </div>
+    <div class="section-header" style="margin-top:20px">
+      <div class="section-icon">🕳️</div>
+      <div>
+        <h2>Knowledge Gaps</h2>
+        <p>What you haven't explored yet</p>
+      </div>
+    </div>
+    <div id="gapsList" class="gaps-list">
+      <div class="loading-state">Analyzing your research...</div>
+    </div>
+    <button class="action-btn full" id="refreshOracleBtn">Refresh Analysis</button>
+  </section>
+
+  <!-- ===== TAB: PERSUASION SHIELD ===== -->
+  <section id="tab-shield" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">🛡️</div>
+      <div>
+        <h2>Persuasion Shield</h2>
+        <p>Detects manipulation on the current page</p>
+      </div>
+    </div>
+    <div class="shield-toggle-row">
+      <span>Analyze current page</span>
+      <button id="runShieldBtn" class="action-btn">Scan Page</button>
+    </div>
+    <div id="shieldResults" class="shield-results">
+      <div class="loading-state">Hit "Scan Page" to analyze for manipulation tactics.</div>
+    </div>
+    <div class="section-header" style="margin-top:20px">
+      <div class="section-icon">⚡</div>
+      <div>
+        <h2>Contradiction Radar</h2>
+        <p>Conflicts with your past reading</p>
+      </div>
+    </div>
+    <div id="contradictionResults" class="shield-results">
+      <div class="loading-state">Scanning for contradictions...</div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: DECISION ===== -->
+  <section id="tab-decision" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">⚖️</div>
+      <div>
+        <h2>Decision Readiness</h2>
+        <p>Are you ready to decide?</p>
+      </div>
+    </div>
+    <div class="decision-topic-row">
+      <input id="decisionTopic" type="text" placeholder="What are you deciding? (e.g. buy a MacBook)" />
+      <button id="runDecisionBtn" class="action-btn">Analyze</button>
+    </div>
+    <div id="decisionResult" class="decision-result hidden">
+      <div class="score-ring-container">
+        <svg viewBox="0 0 120 120" class="score-ring">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#1e1b4b" stroke-width="10"/>
+          <circle id="scoreArc" cx="60" cy="60" r="52" fill="none" stroke="#7c3aed" stroke-width="10"
+            stroke-dasharray="326.7" stroke-dashoffset="326.7"
+            stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="score-label">
+          <span id="scoreNum" class="score-num">0</span>
+          <span class="score-pct">%</span>
+          <span id="scoreTag" class="score-tag"></span>
+        </div>
+      </div>
+      <div class="decision-columns">
+        <div class="col-block">
+          <h4>✅ What you know</h4>
+          <ul id="strengthsList"></ul>
+        </div>
+        <div class="col-block">
+          <h4>❓ Still missing</h4>
+          <ul id="missingList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: KNOWLEDGE GRAPH ===== -->
+  <section id="tab-graph" class="tab-content">
+    <div class="section-header">
+      <div class="section-icon">🌐</div>
+      <div>
+        <h2>Knowledge Graph</h2>
+        <p>Everything you've explored</p>
+      </div>
+    </div>
+    <div id="graphStats" class="graph-stats"></div>
+    <div id="graphList" class="graph-list"></div>
+    <div class="brain-actions">
+      <button class="action-btn full" id="refreshGraphBtn">Refresh Graph</button>
+    </div>
+  </section>
+
+  <!-- ===== SETTINGS OVERLAY ===== -->
+  <div id="settingsOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="overlay-header">
+        <h2>Settings</h2>
+        <button id="closeSettings" class="icon-btn">✕</button>
+      </div>
+      <label class="setting-label">Claude API Key</label>
+      <div class="api-key-row">
+        <input id="apiKeyInput" type="password" placeholder="sk-ant-..." />
+        <button id="saveKeyBtn" class="action-btn">Save</button>
+      </div>
+      <p class="setting-hint">Your key is stored locally and never sent anywhere except the Claude API.</p>
+      <div id="keyStatus" class="key-status"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

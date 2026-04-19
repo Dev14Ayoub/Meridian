@@ -1,0 +1,35 @@
+.meridian-highlight {
+  border-radius: 3px;
+  cursor: help;
+  transition: opacity 0.2s;
+}
+.meridian-highlight:hover { opacity: 0.8; }
+.meridian-low    { background: rgba(250, 204, 21, 0.35); }
+.meridian-medium { background: rgba(249, 115, 22, 0.4); }
+.meridian-high   { background: rgba(239, 68, 68, 0.45); }
+
+#meridian-shield-badge {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e1b4b;
+  color: #c7d2fe;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #4338ca;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  cursor: pointer;
+  animation: meridian-slide-in 0.3s ease;
+}
+
+@keyframes meridian-slide-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
