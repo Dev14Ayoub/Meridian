@@ -26,6 +26,14 @@
         <option value="Debug">Debug</option>
         <option value="Shopping">Shopping</option>
       </select>
+      <button id="voiceBtn" class="icon-btn voice-idle-btn" title="Talk to Meridian">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
       <button id="settingsBtn" class="icon-btn" title="Settings">⚙</button>
     </div>
   </header>
@@ -171,6 +179,86 @@
     </div>
   </section>
 
+  <!-- ===== VOICE OVERLAY ===== -->
+  <div id="voiceOverlay" class="voice-overlay hidden">
+
+    <!-- Ambient background rings -->
+    <div class="voice-ambient">
+      <div class="ambient-ring r1"></div>
+      <div class="ambient-ring r2"></div>
+      <div class="ambient-ring r3"></div>
+    </div>
+
+    <!-- Top bar -->
+    <div class="voice-topbar">
+      <span class="voice-mode-badge" id="voiceModeBadge">General Mode</span>
+      <div class="voice-topbar-right">
+        <label class="continuous-toggle" title="Continuous conversation">
+          <input type="checkbox" id="continuousToggle" />
+          <span class="toggle-track"></span>
+          <span class="toggle-label">Continuous</span>
+        </label>
+        <button id="closeVoiceBtn" class="icon-btn">✕</button>
+      </div>
+    </div>
+
+    <!-- Orb -->
+    <div class="voice-orb-wrap">
+      <div class="voice-orb" id="voiceOrb">
+        <div class="orb-core">
+          <svg id="orbIcon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+      </div>
+      <div class="voice-status-label" id="voiceStatusLabel">Tap to speak</div>
+    </div>
+
+    <!-- Live transcript -->
+    <div class="voice-transcript-wrap">
+      <div id="voiceInterim" class="voice-interim"></div>
+    </div>
+
+    <!-- Voice conversation log -->
+    <div class="voice-log" id="voiceLog"></div>
+
+    <!-- Controls -->
+    <div class="voice-controls">
+      <button id="voiceTapBtn" class="voice-tap-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <span id="voiceTapLabel">Tap to speak</span>
+      </button>
+      <button id="voiceStopBtn" class="voice-stop-btn hidden" title="Stop speaking">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      </button>
+      <div class="voice-select-wrap">
+        <select id="voiceSelect" class="voice-select" title="AI voice"></select>
+      </div>
+    </div>
+
+    <!-- Command hints -->
+    <div class="voice-hints">
+      <span class="hint-label">Try saying:</span>
+      <div class="hints-row">
+        <span class="hint">"Summarize my session"</span>
+        <span class="hint">"What am I missing?"</span>
+        <span class="hint">"Scan this page"</span>
+        <span class="hint">"Search for [topic]"</span>
+        <span class="hint">"Am I ready to decide on [X]?"</span>
+        <span class="hint">"Save this page"</span>
+      </div>
+    </div>
+
+  </div>
+
   <!-- ===== SETTINGS OVERLAY ===== -->
   <div id="settingsOverlay" class="overlay hidden">
     <div class="overlay-card">
@@ -188,6 +276,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

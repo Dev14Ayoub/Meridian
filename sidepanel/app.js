@@ -1,3 +1,9 @@
+import { VoiceEngine } from '../ai/voice.js';
+
+// ── Voice state ───────────────────────────────────────────
+let voice = null;
+let voiceActive = false;
+
 // ── Helpers ──────────────────────────────────────────────
 function msg(text, role) {
   const container = document.getElementById('chatContainer');
@@ -407,5 +413,283 @@ async function saveApiKey() {
   document.getElementById('keyStatus').className = 'key-status ok';
 }
 
+// ── Voice ─────────────────────────────────────────────────
+function initVoice() {
+  voice = new VoiceEngine({
+    onTranscript: handleVoiceTranscript,
+    onStateChange: handleVoiceStateChange,
+    onError: (err) => {
+      setVoiceStatus(`Error: ${err}`);
+      setOrbState('idle');
+    }
+  });
+
+  // Populate voice selector
+  const sel = document.getElementById('voiceSelect');
+  const populate = () => {
+    const voices = voice.getAvailableVoices();
+    sel.innerHTML = voices.map((v, i) =>
+      `<option value="${i}">${v.name.slice(0, 20)}</option>`
+    ).join('');
+  };
+  populate();
+  window.speechSynthesis.onvoiceschanged = populate;
+
+  sel.addEventListener('change', () => voice.setVoiceByIndex(+sel.value));
+
+  // Continuous toggle
+  document.getElementById('continuousToggle').addEventListener('change', e => {
+    voice.setContinuous(e.target.checked);
+  });
+
+  // Tap-to-speak button
+  document.getElementById('voiceTapBtn').addEventListener('click', () => {
+    if (voice.state === 'listening') {
+      voice.stopListening();
+    } else if (voice.state === 'idle') {
+      voice.startListening();
+    }
+  });
+
+  // Stop speaking button
+  document.getElementById('voiceStopBtn').addEventListener('click', () => {
+    voice.stopSpeaking();
+    if (voice.continuous) voice.resumeListening();
+  });
+
+  // Open / close overlay
+  document.getElementById('voiceBtn').addEventListener('click', openVoiceOverlay);
+  document.getElementById('closeVoiceBtn').addEventListener('click', closeVoiceOverlay);
+
+  // Hint chips as quick commands
+  document.querySelectorAll('.hint').forEach(h => {
+    h.addEventListener('click', () => {
+      const text = h.textContent.replace(/['"]/g, '').trim();
+      processVoiceText(text);
+    });
+  });
+
+  // Update mode badge
+  document.getElementById('modeSelect').addEventListener('change', () => {
+    document.getElementById('voiceModeBadge').textContent =
+      document.getElementById('modeSelect').value + ' Mode';
+  });
+}
+
+function openVoiceOverlay() {
+  voiceActive = true;
+  document.getElementById('voiceOverlay').classList.remove('hidden');
+  document.getElementById('voiceBtn').classList.add('active');
+  document.getElementById('voiceModeBadge').textContent = getMode() + ' Mode';
+  voice?.startListening();
+}
+
+function closeVoiceOverlay() {
+  voiceActive = false;
+  voice?.stopListening();
+  voice?.stopSpeaking();
+  document.getElementById('voiceOverlay').classList.add('hidden');
+  document.getElementById('voiceBtn').classList.remove('active');
+}
+
+function handleVoiceStateChange(state) {
+  setOrbState(state);
+  const tapBtn   = document.getElementById('voiceTapBtn');
+  const tapLabel = document.getElementById('voiceTapLabel');
+  const stopBtn  = document.getElementById('voiceStopBtn');
+  const interim  = document.getElementById('voiceInterim');
+
+  switch (state) {
+    case 'listening':
+      setVoiceStatus('Listening…');
+      tapLabel.textContent = 'Stop listening';
+      tapBtn.classList.add('listening-active');
+      stopBtn.classList.add('hidden');
+      interim.textContent = '';
+      break;
+    case 'thinking':
+      setVoiceStatus('Thinking…');
+      tapLabel.textContent = 'Tap to speak';
+      tapBtn.classList.remove('listening-active');
+      stopBtn.classList.add('hidden');
+      interim.textContent = '';
+      break;
+    case 'speaking':
+      setVoiceStatus('Speaking…');
+      tapLabel.textContent = 'Tap to speak';
+      tapBtn.classList.remove('listening-active');
+      stopBtn.classList.remove('hidden');
+      break;
+    default:
+      setVoiceStatus(document.getElementById('continuousToggle').checked
+        ? 'Listening continuously…' : 'Tap to speak');
+      tapLabel.textContent = 'Tap to speak';
+      tapBtn.classList.remove('listening-active');
+      stopBtn.classList.add('hidden');
+      break;
+  }
+}
+
+function setOrbState(state) {
+  const orb = document.getElementById('voiceOrb');
+  orb.className = 'voice-orb';
+  if (state !== 'idle') orb.classList.add(state);
+}
+
+function setVoiceStatus(text) {
+  document.getElementById('voiceStatusLabel').textContent = text;
+}
+
+// Update interim display as user speaks
+function updateInterim() {
+  if (voice?.interimText) {
+    document.getElementById('voiceInterim').textContent = voice.interimText;
+  }
+}
+setInterval(() => { if (voiceActive) updateInterim(); }, 100);
+
+async function handleVoiceTranscript(transcript) {
+  appendVoiceLog(transcript, 'user');
+  await processVoiceText(transcript);
+}
+
+async function processVoiceText(text) {
+  if (!voice) return;
+  const intent = voice.parseIntent(text);
+
+  // Show intent label
+  appendVoiceIntent(intentLabel(intent.intent));
+
+  try {
+    const answer = await dispatchVoiceIntent(intent);
+    appendVoiceLog(answer, 'ai');
+    voice.speak(answer);
+  } catch (err) {
+    const errMsg = err?.message === 'NO_API_KEY'
+      ? 'Please set your Claude API key in Settings.'
+      : 'Something went wrong. Please try again.';
+    appendVoiceLog(errMsg, 'ai');
+    voice.speak(errMsg);
+  }
+}
+
+async function dispatchVoiceIntent(intent) {
+  const mode = getMode();
+
+  switch (intent.intent) {
+
+    case 'summarize': {
+      const res = await send('GET_SESSION_SUMMARY', { mode });
+      return res?.summary || 'Nothing to summarize yet. Browse a few pages first.';
+    }
+
+    case 'search':
+    case 'ask': {
+      const res = await send('ASK_BRAIN', { query: intent.query || intent.text, mode });
+      if (res?.error === 'NO_API_KEY') throw new Error('NO_API_KEY');
+      return res?.answer || 'I couldn\'t find anything about that in your session.';
+    }
+
+    case 'gaps': {
+      const res = await send('GET_KNOWLEDGE_GAPS', { topic: '', mode });
+      const gaps = res?.gaps || [];
+      if (!gaps.length) return 'No significant knowledge gaps detected yet.';
+      return 'Here are your top knowledge gaps: ' +
+        gaps.map((g, i) => `${i + 1}. ${g.topic} — ${g.why}`).join('. ');
+    }
+
+    case 'shield': {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return 'No active page to scan.';
+      const pageRes = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_TEXT' }).catch(() => null);
+      if (!pageRes?.text) return 'Could not read the page content.';
+      const res = await send('ASK_BRAIN', {
+        query: `Analyze for manipulation tactics and summarize findings in 2 sentences: ${pageRes.text.slice(0, 1500)}`,
+        mode: 'Shield'
+      });
+      return res?.answer || 'Page analysis complete. No obvious manipulation detected.';
+    }
+
+    case 'contradictions': {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return 'No active page to check.';
+      const pageRes = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_TEXT' }).catch(() => null);
+      const res = await send('DETECT_CONTRADICTIONS', { currentText: pageRes?.text || '' });
+      const items = res?.contradictions || [];
+      if (!items.length) return 'No contradictions found with your past reading.';
+      return `I found ${items.length} contradiction${items.length > 1 ? 's' : ''}. ` +
+        items.slice(0, 2).map(c => `"${c.claim?.slice(0, 80)}" conflicts with ${c.source}.`).join(' ');
+    }
+
+    case 'decision': {
+      const res = await send('GET_DECISION_SCORE', { topic: intent.topic });
+      const { score, label, missing = [] } = res || {};
+      let reply = `Your decision readiness is ${score}%, rated "${label}".`;
+      if (missing.length) reply += ` You're still missing: ${missing.slice(0, 3).join(', ')}.`;
+      return reply;
+    }
+
+    case 'save': {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_TEXT' }).catch(() => {});
+      return 'Page saved to your Meridian memory.';
+    }
+
+    case 'navigate': {
+      const tabMap = { brain: 'brain', oracle: 'oracle', shield: 'shield',
+                       decision: 'decision', graph: 'graph', session: 'brain', memory: 'brain' };
+      const target = tabMap[intent.tab] || 'brain';
+      document.querySelector(`.tab-btn[data-tab="${target}"]`)?.click();
+      return `Switched to ${target} tab.`;
+    }
+
+    case 'clear': {
+      await send('CLEAR_SESSION');
+      return 'Memory cleared. Starting fresh.';
+    }
+
+    default:
+      return 'I didn\'t catch that. Try asking about your research, or say "summarize my session".';
+  }
+}
+
+function intentLabel(intent) {
+  const labels = {
+    summarize: '📋 Summarizing session',
+    search:    '🔍 Searching memory',
+    ask:       '🧠 Querying brain',
+    gaps:      '🕳️ Detecting gaps',
+    shield:    '🛡️ Scanning page',
+    contradictions: '⚡ Checking contradictions',
+    decision:  '⚖️ Decision score',
+    save:      '💾 Saving page',
+    navigate:  '🗂️ Navigating',
+    clear:     '🗑️ Clearing memory'
+  };
+  return labels[intent] || '💬 Processing';
+}
+
+function appendVoiceLog(text, role) {
+  const log = document.getElementById('voiceLog');
+  const el = document.createElement('div');
+  el.className = role === 'user' ? 'vlog-entry' : 'vlog-entry';
+  el.innerHTML = `<div class="${role === 'user' ? 'vlog-user' : 'vlog-ai'}">${escapeHtml(text)}</div>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function appendVoiceIntent(label) {
+  const log = document.getElementById('voiceLog');
+  const el = document.createElement('div');
+  el.className = 'vlog-intent';
+  el.textContent = label;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 // ── Boot ──────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { init(); initVoice(); });
