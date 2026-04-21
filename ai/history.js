@@ -95,6 +95,74 @@ export class MeridianHistory {
     return MeridianHistory.toDateStr();
   }
 
+  // Parse period phrases into {startDate, endDate, label, period}
+  // Handles: "this week","last week","this month","last month","this year",
+  //          "last year","past N days/weeks/months/years","week","month","year"
+  static parseRange(input) {
+    const s = (input || '').trim().toLowerCase();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const mk = (start, end, label, period) => ({
+      startDate: MeridianHistory.toDateStr(start.getTime()),
+      endDate:   MeridianHistory.toDateStr(end.getTime()),
+      label, period
+    });
+
+    // "past N days/weeks/months/years"
+    const pastMatch = s.match(/(?:past|last)\s+(\d+)\s*(day|week|month|year)s?/);
+    if (pastMatch) {
+      const n = +pastMatch[1];
+      const unit = pastMatch[2];
+      const end = today;
+      const start = new Date(today);
+      if (unit === 'day')   start.setDate(start.getDate() - n + 1);
+      if (unit === 'week')  start.setDate(start.getDate() - n * 7 + 1);
+      if (unit === 'month') start.setMonth(start.getMonth() - n);
+      if (unit === 'year')  start.setFullYear(start.getFullYear() - n);
+      return mk(start, end, `Past ${n} ${unit}${n>1?'s':''}`, unit);
+    }
+
+    // Week
+    if (/this\s+week|week\s+recap|weekly|(^|\s)week(\s|$)/.test(s) && !/last/.test(s)) {
+      const start = new Date(today);
+      start.setDate(start.getDate() - start.getDay()); // Sunday
+      return mk(start, today, 'This week', 'week');
+    }
+    if (/last\s+week|previous\s+week/.test(s)) {
+      const end = new Date(today);
+      end.setDate(end.getDate() - end.getDay() - 1);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 6);
+      return mk(start, end, 'Last week', 'week');
+    }
+
+    // Month
+    if (/this\s+month|month\s+recap|monthly|(^|\s)month(\s|$)/.test(s) && !/last/.test(s)) {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      return mk(start, today, 'This month', 'month');
+    }
+    if (/last\s+month|previous\s+month/.test(s)) {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(today.getFullYear(), today.getMonth(), 0);
+      return mk(start, end, 'Last month', 'month');
+    }
+
+    // Year
+    if (/this\s+year|year\s+recap|yearly|annual|(^|\s)year(\s|$)/.test(s) && !/last/.test(s)) {
+      const start = new Date(today.getFullYear(), 0, 1);
+      return mk(start, today, 'This year', 'year');
+    }
+    if (/last\s+year|previous\s+year/.test(s)) {
+      const start = new Date(today.getFullYear() - 1, 0, 1);
+      const end = new Date(today.getFullYear() - 1, 11, 31);
+      return mk(start, end, 'Last year', 'year');
+    }
+
+    // Fallback: treat as a single day
+    const d = MeridianHistory.parseDate(input);
+    return { startDate: d, endDate: d, label: d, period: 'day' };
+  }
+
   // ── Page Visits ───────────────────────────────────────────
   async savePageVisit(entry) {
     await this.init();
@@ -171,6 +239,28 @@ export class MeridianHistory {
       this.getResearchByDate(dateStr)
     ]);
     return { dateStr, visits, conversations, research };
+  }
+
+  // ── Range Summary (week / month / year / custom) ─────────
+  async getRangeSummary(startDateStr, endDateStr) {
+    await this.init();
+    const range = IDBKeyRange.bound(startDateStr, endDateStr);
+    const [visits, conversations, research] = await Promise.all([
+      this._getByIndexRange(STORES.PAGE_VISITS, 'date', range),
+      this._getByIndexRange(STORES.CONVERSATIONS, 'date', range),
+      this._getByIndexRange(STORES.RESEARCH, 'date', range)
+    ]);
+    return { startDate: startDateStr, endDate: endDateStr, visits, conversations, research };
+  }
+
+  _getByIndexRange(store, indexName, keyRange) {
+    return new Promise((res, rej) => {
+      const tx   = this.db.transaction(store, 'readonly');
+      const idx  = tx.objectStore(store).index(indexName);
+      const req  = idx.getAll(keyRange);
+      req.onsuccess = e => res(e.target.result || []);
+      req.onerror   = e => rej(e.target.error);
+    });
   }
 
   async getActiveDates(limit = 30) {
