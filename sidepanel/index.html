@@ -49,6 +49,24 @@
     <button class="tab-btn" data-tab="graph">Graph</button>
   </nav>
 
+  <!-- First-run onboarding banner (shows only when no API key is set) -->
+  <div id="onboardingBanner" class="onboarding-banner hidden">
+    <div class="onboarding-inner">
+      <div class="onboarding-icon">✨</div>
+      <div class="onboarding-body">
+        <div class="onboarding-title">Welcome to Meridian</div>
+        <div class="onboarding-text">
+          Add your Claude API key to unlock chat, research, voice, and every other feature.
+          Your key is stored locally — never sent anywhere except the Claude API.
+        </div>
+        <div class="onboarding-actions">
+          <button id="onboardingSetupBtn" class="action-btn">Add API Key</button>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" class="onboarding-link">Get a key ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== TAB: SESSION BRAIN ===== -->
   <section id="tab-brain" class="tab-content active">
     <div class="chat-container" id="chatContainer">

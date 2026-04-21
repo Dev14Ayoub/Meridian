@@ -102,14 +102,22 @@ async function init() {
   });
 
   // Settings
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    document.getElementById('settingsOverlay').classList.remove('hidden');
-    loadApiKey();
-  });
+  document.getElementById('settingsBtn').addEventListener('click', openSettings);
   document.getElementById('closeSettings').addEventListener('click', () => {
     document.getElementById('settingsOverlay').classList.add('hidden');
   });
   document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
+
+  // Onboarding banner — shows until an API key is saved
+  document.getElementById('onboardingSetupBtn').addEventListener('click', openSettings);
+  await refreshOnboardingBanner();
+
+  // If popup asked us to open settings, do it now and clear the flag
+  const { openSettingsOnLoad } = await chrome.storage.local.get('openSettingsOnLoad');
+  if (openSettingsOnLoad) {
+    await chrome.storage.local.remove('openSettingsOnLoad');
+    openSettings();
+  }
 
   // Language selector in settings
   document.getElementById('voiceLangSelect')?.addEventListener('change', e => {
@@ -194,14 +202,30 @@ async function sendChat() {
     const res = await send('ASK_BRAIN', { query, mode: getMode() });
     loader.remove();
     if (res?.error === 'NO_API_KEY') {
-      msg('Please set your Claude API key in Settings ⚙', 'ai');
+      apiKeyPromptMsg();
     } else {
       msg(res?.answer || 'No response.', 'ai');
     }
   } catch {
     loader.remove();
-    msg('Something went wrong. Check your API key.', 'ai');
+    apiKeyPromptMsg();
   }
+}
+
+// Inline AI message that prompts the user to set their API key — click to open settings
+function apiKeyPromptMsg() {
+  const container = document.getElementById('chatContainer');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ai';
+  wrap.innerHTML = `
+    <div class="msg-bubble api-prompt">
+      <div>No Claude API key yet. Add one to start chatting.</div>
+      <button class="action-btn small" id="inlineSetupBtn" style="margin-top:8px">Add API Key</button>
+    </div>
+    <div class="msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`;
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  wrap.querySelector('#inlineSetupBtn').addEventListener('click', openSettings);
 }
 
 async function exportSession() {
@@ -555,6 +579,11 @@ async function loadGraph() {
 }
 
 // ── Settings ──────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.remove('hidden');
+  loadApiKey();
+}
+
 async function loadApiKey() {
   const res = await send('GET_API_KEY');
   if (res?.key) {
@@ -570,6 +599,15 @@ async function saveApiKey() {
   await send('SET_API_KEY', { key });
   document.getElementById('keyStatus').textContent = '✓ Saved successfully';
   document.getElementById('keyStatus').className = 'key-status ok';
+  await refreshOnboardingBanner();
+}
+
+async function refreshOnboardingBanner() {
+  const banner = document.getElementById('onboardingBanner');
+  if (!banner) return;
+  const res = await send('GET_API_KEY');
+  if (res?.key) banner.classList.add('hidden');
+  else          banner.classList.remove('hidden');
 }
 
 // ── Voice ─────────────────────────────────────────────────
