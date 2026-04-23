@@ -1,6 +1,7 @@
 import { MeridianMemory }  from '../ai/memory.js';
 import { MeridianBrain }   from '../ai/brain.js';
 import { MeridianHistory } from '../ai/history.js';
+import { isPrivacyZone, isPausedHost, redact } from '../utils/safety.js';
 
 const memory  = new MeridianMemory();
 const brain   = new MeridianBrain();
@@ -31,13 +32,25 @@ async function handleMessage(message, sender) {
 
     // ── Page capture ──────────────────────────────────────
     case 'PAGE_CAPTURED': {
+      // Defense in depth: content script already screens, but re-check here
+      // in case the list ever diverges or a message bypasses the content script.
+      if (isPrivacyZone(message.data.url)) {
+        return { ok: false, blocked: 'privacy_zone' };
+      }
+      const { pausedHosts = [] } = await chrome.storage.local.get('pausedHosts');
+      if (isPausedHost(message.data.url, pausedHosts)) {
+        return { ok: false, blocked: 'paused' };
+      }
+
       await memory.init();
       await history.init();
+
+      const cleanedText = redact(message.data.text || '');
       const entry = {
         url:       message.data.url,
-        title:     message.data.title,
-        summary:   message.data.text.slice(0, 1500),
-        fullText:  message.data.text,
+        title:     redact(message.data.title || ''),
+        summary:   cleanedText.slice(0, 1500),
+        fullText:  cleanedText,
         timestamp: Date.now(),
         tabId:     sender.tab?.id,
         mode:      await getActiveMode()
@@ -172,6 +185,47 @@ async function handleMessage(message, sender) {
       return { ok: true };
     }
 
+    // ── Full wipe: both IndexedDB databases + memory-related storage ──
+    // Preserves API key, activeMode, voiceLang, onboarding state.
+    case 'CLEAR_ALL_MEMORY': {
+      try {
+        await memory.init();
+        await history.init();
+        // Close and drop DBs
+        memory.db?.close?.();  memory.db  = null;
+        history.db?.close?.(); history.db = null;
+        await Promise.all([
+          deleteDB('MeridianDB'),
+          deleteDB('MeridianHistoryDB')
+        ]);
+        // Clear per-page UI state but not identity/settings
+        await chrome.storage.local.remove(['lastOracle', 'lastResearch']);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    }
+
+    // ── Per-site pause toggles ────────────────────────────
+    case 'GET_PAUSED_HOSTS': {
+      const { pausedHosts = [] } = await chrome.storage.local.get('pausedHosts');
+      return { pausedHosts };
+    }
+    case 'SET_PAUSED_HOSTS': {
+      await chrome.storage.local.set({ pausedHosts: message.hosts || [] });
+      return { ok: true };
+    }
+    case 'TOGGLE_PAUSED_HOST': {
+      const host = (message.host || '').toLowerCase().replace(/^www\./, '');
+      if (!host) return { ok: false, error: 'No host' };
+      const { pausedHosts = [] } = await chrome.storage.local.get('pausedHosts');
+      const idx = pausedHosts.indexOf(host);
+      if (idx >= 0) pausedHosts.splice(idx, 1);
+      else pausedHosts.push(host);
+      await chrome.storage.local.set({ pausedHosts });
+      return { ok: true, paused: idx < 0, pausedHosts };
+    }
+
     // ── Stats ─────────────────────────────────────────────
     case 'GET_MEMORY_STATS': {
       await memory.init();
@@ -209,6 +263,15 @@ async function getActiveMode() {
   return data.activeMode || 'General';
 }
 
+function deleteDB(name) {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.deleteDatabase(name);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+    req.onblocked = () => resolve(); // old handle — will delete when freed
+  });
+}
+
 async function runOracle(entry) {
   try {
     const entries = await memory.getRecentEntries(20);
@@ -223,11 +286,16 @@ async function runOracle(entry) {
 // Context menu
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== 'meridian-save' || !info.selectionText) return;
+  if (isPrivacyZone(tab?.url || '')) return;
+  const { pausedHosts = [] } = await chrome.storage.local.get('pausedHosts');
+  if (isPausedHost(tab?.url || '', pausedHosts)) return;
+
   await memory.init();
   await history.init();
+  const cleaned = redact(info.selectionText);
   const entry = {
-    url: tab.url, title: tab.title,
-    summary: info.selectionText, fullText: info.selectionText,
+    url: tab.url, title: redact(tab.title || ''),
+    summary: cleaned, fullText: cleaned,
     timestamp: Date.now(), tabId: tab.id, pinned: true,
     mode: await getActiveMode()
   };

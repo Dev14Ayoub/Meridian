@@ -111,6 +111,8 @@ async function init() {
     document.getElementById('settingsOverlay').classList.add('hidden');
   });
   document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
+  document.getElementById('pauseCurrentToggle')?.addEventListener('change', togglePauseCurrent);
+  document.getElementById('wipeAllBtn')?.addEventListener('click', wipeAllMemory);
 
   // Onboarding banner — shows until an API key is saved
   document.getElementById('onboardingSetupBtn').addEventListener('click', openSettings);
@@ -586,6 +588,7 @@ async function loadGraph() {
 function openSettings() {
   document.getElementById('settingsOverlay').classList.remove('hidden');
   loadApiKey();
+  refreshPrivacyPanel();
 }
 
 async function loadApiKey() {
@@ -594,6 +597,94 @@ async function loadApiKey() {
     document.getElementById('apiKeyInput').value = res.key;
     document.getElementById('keyStatus').textContent = '✓ API key saved';
     document.getElementById('keyStatus').className = 'key-status ok';
+  }
+}
+
+// ── Privacy & Safety panel ───────────────────────────────
+let currentHost = '';
+
+async function refreshPrivacyPanel() {
+  currentHost = await getActiveHost();
+  const hostEl   = document.getElementById('pauseCurrentHost');
+  const toggleEl = document.getElementById('pauseCurrentToggle');
+
+  if (!currentHost) {
+    if (hostEl) hostEl.textContent = 'No active web page';
+    if (toggleEl) { toggleEl.checked = false; toggleEl.disabled = true; }
+  } else {
+    if (hostEl) hostEl.textContent = currentHost;
+    if (toggleEl) toggleEl.disabled = false;
+  }
+
+  const res = await send('GET_PAUSED_HOSTS');
+  const paused = res?.pausedHosts || [];
+  if (toggleEl && currentHost) {
+    toggleEl.checked = paused.includes(currentHost);
+  }
+  renderPausedHosts(paused);
+}
+
+async function getActiveHost() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.url || !/^https?:/.test(tab.url)) return '';
+    return new URL(tab.url).hostname.replace(/^www\./, '');
+  } catch { return ''; }
+}
+
+function renderPausedHosts(hosts) {
+  const list = document.getElementById('pausedHostsList');
+  if (!list) return;
+  list.innerHTML = '';
+  hosts.forEach(h => {
+    const chip = document.createElement('span');
+    chip.className = 'pause-chip';
+    chip.innerHTML = `<span>${h}</span><button title="Unpause" data-host="${h}">✕</button>`;
+    chip.querySelector('button').addEventListener('click', async () => {
+      await send('TOGGLE_PAUSED_HOST', { host: h });
+      refreshPrivacyPanel();
+    });
+    list.appendChild(chip);
+  });
+}
+
+async function togglePauseCurrent() {
+  if (!currentHost) return;
+  await send('TOGGLE_PAUSED_HOST', { host: currentHost });
+  refreshPrivacyPanel();
+}
+
+async function wipeAllMemory() {
+  const ok = confirm(
+    'This will permanently delete every captured page, conversation, and research session.\n\n' +
+    'Your API key and language settings are kept.\n\nContinue?'
+  );
+  if (!ok) return;
+
+  const btn = document.getElementById('wipeAllBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Erasing…';
+
+  try {
+    const res = await send('CLEAR_ALL_MEMORY');
+    if (res?.ok) {
+      btn.textContent = '✓ All memory erased';
+      // Reset chat UI
+      const chat = document.getElementById('chatContainer');
+      if (chat) chat.innerHTML = `
+        <div class="welcome-msg">
+          <div class="welcome-icon">🧠</div>
+          <p>All memory erased. Ready for a fresh start.</p>
+        </div>`;
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+    } else {
+      btn.textContent = 'Failed — try again';
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+    }
+  } catch {
+    btn.textContent = 'Failed — try again';
+    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
   }
 }
 

@@ -1,3 +1,5 @@
+import { wrapUntrusted, INJECTION_DEFENSE } from '../utils/safety.js';
+
 const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 const MODEL      = 'claude-haiku-4-5-20251001';
 
@@ -6,7 +8,9 @@ const MERIDIAN_PERSONA = `You are Meridian, an intelligent AI browser co-pilot. 
 
 CRITICAL LANGUAGE RULE: Always detect the language of the user's message and respond ENTIRELY in that same language. If the user writes in French, respond in French. Arabic → Arabic. Spanish → Spanish. English → English. Never mix languages in a single response. Match the user's language exactly.
 
-Be clear, direct, and comprehensive. When answering questions, give complete, well-structured responses. When recapping research, be detailed and organized.`;
+Be clear, direct, and comprehensive. When answering questions, give complete, well-structured responses. When recapping research, be detailed and organized.
+
+${INJECTION_DEFENSE}`;
 
 export class MeridianBrain {
 
@@ -71,7 +75,7 @@ Mode: ${mode}.
 Always respond in the exact same language as the user's question.`;
 
     const user = entries.length
-      ? `BROWSING HISTORY:\n${context}\n\nQUESTION: ${query}`
+      ? `BROWSING HISTORY:\n${wrapUntrusted(context)}\n\nQUESTION: ${query}`
       : `QUESTION: ${query}\n\n(No browsing history yet — answer from general knowledge)`;
 
     return this.call(system, user, 1500);
@@ -85,7 +89,7 @@ Always respond in the exact same language as the user's question.`;
 Include: main topics, key facts learned, important sources, and what they might still need.
 Mode: ${mode}. Use clear sections and bullet points. Respond in the user's language if detectable from the content.`;
 
-    return this.call(system, `SESSION DATA:\n${context}`, 2000);
+    return this.call(system, `SESSION DATA:\n${wrapUntrusted(context)}`, 2000);
   }
 
   // ── Full Day Recap ────────────────────────────────────────
@@ -117,13 +121,13 @@ Respond in the same language as the most recent conversation content.`;
     const user = `DATE: ${dateStr}
 
 WEBSITES VISITED:
-${visitText}
+${wrapUntrusted(visitText)}
 
 CONVERSATIONS WITH MERIDIAN:
-${convText}
+${wrapUntrusted(convText)}
 
 RESEARCH SESSIONS:
-${researchText}
+${wrapUntrusted(researchText)}
 
 Generate a comprehensive day recap.`;
 
@@ -149,7 +153,7 @@ Respond in JSON:
 }
 Only respond with valid JSON.`;
 
-    const raw = await this.call(system, `RESEARCH TOPIC: ${topic}\n\n${known}`, 1500);
+    const raw = await this.call(system, `RESEARCH TOPIC: ${topic}\n\n${wrapUntrusted(known)}`, 1500);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -173,7 +177,7 @@ Include:
 Be comprehensive and cite sources (page titles + URLs) where relevant.
 Respond in the language of the content.`;
 
-    return this.call(system, `RESEARCH TOPIC: ${topic}\n\nSOURCES:\n${context}`, 3000);
+    return this.call(system, `RESEARCH TOPIC: ${topic}\n\nSOURCES:\n${wrapUntrusted(context)}`, 3000);
   }
 
   // ── Answer ANY question ───────────────────────────────────
@@ -187,8 +191,8 @@ Use the browsing context to give more personalized answers when relevant.
 Always respond in the same language as the question. Be thorough but concise.`;
 
     const parts = [];
-    if (context) parts.push(`BROWSING CONTEXT:\n${context}`);
-    if (history) parts.push(`RECENT CONVERSATION:\n${history}`);
+    if (context) parts.push(`BROWSING CONTEXT:\n${wrapUntrusted(context)}`);
+    if (history) parts.push(`RECENT CONVERSATION:\n${wrapUntrusted(history)}`);
     parts.push(`QUESTION: ${question}`);
 
     return this.call(system, parts.join('\n\n'), 2000);
@@ -202,7 +206,7 @@ Respond in JSON: { "score": 0-100, "label": "Not Ready|Getting There|Almost|Read
 Only respond with valid JSON.`;
 
     const raw = await this.call(system,
-      `DECISION: ${topic || 'current research'}\n\nRESEARCH:\n${context}`, 800);
+      `DECISION: ${topic || 'current research'}\n\nRESEARCH:\n${wrapUntrusted(context)}`, 800);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -218,7 +222,7 @@ Respond in JSON: { "contradictions": [{ "claim": "...", "conflict": "...", "sour
 Only flag genuine contradictions, not different opinions. Only respond with valid JSON.`;
 
     const raw = await this.call(system,
-      `CURRENT PAGE:\n${currentText?.slice(0, 1000)}\n\nPAST READING:\n${context}`, 800);
+      `CURRENT PAGE:\n${wrapUntrusted(currentText?.slice(0, 1000) || '')}\n\nPAST READING:\n${wrapUntrusted(context)}`, 800);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -234,7 +238,7 @@ Respond in JSON: { "gaps": [{ "topic": "...", "why": "...", "search_suggestion":
 Max 6 gaps. Include a specific search suggestion for each. Only respond with valid JSON.`;
 
     const raw = await this.call(system,
-      `TOPIC: ${topic || 'current research'}\n\nWHAT THEY'VE READ:\n${context}`, 800);
+      `TOPIC: ${topic || 'current research'}\n\nWHAT THEY'VE READ:\n${wrapUntrusted(context)}`, 800);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -250,7 +254,7 @@ Respond in JSON: { "prediction": "...", "reason": "...", "search_query": "ready-
 Only respond with valid JSON.`;
 
     const raw = await this.call(system,
-      `LATEST: ${latest.title} — ${latest.url}\n\nHISTORY:\n${context}`, 400);
+      `LATEST: ${latest.title} — ${latest.url}\n\nHISTORY:\n${wrapUntrusted(context)}`, 400);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -265,7 +269,7 @@ Respond in JSON: { "tactics": [{ "text": "...", "technique": "...", "severity": 
 Techniques: fake_urgency, fear_appeal, social_proof_manipulation, anchoring, cherry_picking, false_scarcity, emotional_manipulation, misleading_stats, appeal_to_authority, false_dichotomy.
 Only flag clear examples. Only respond with valid JSON.`;
 
-    const raw = await this.call(system, `ANALYZE:\n${text?.slice(0, 2000)}`, 800);
+    const raw = await this.call(system, `ANALYZE:\n${wrapUntrusted(text?.slice(0, 2000) || '')}`, 800);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {

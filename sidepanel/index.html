@@ -394,6 +394,36 @@
         <option value="pl">Polski</option>
       </select>
       <p class="setting-hint">Meridian will listen and respond in this language. Auto-detect works for most languages.</p>
+
+      <!-- ── Privacy & Safety ───────────────────────── -->
+      <div class="setting-section">
+        <label class="setting-label">Privacy &amp; Safety</label>
+
+        <div class="pause-row">
+          <div class="pause-text">
+            <div class="pause-title">Pause on this site</div>
+            <div class="pause-sub" id="pauseCurrentHost">—</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pauseCurrentToggle" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+        <p class="setting-hint">When paused, Meridian won't capture pages from this host.</p>
+
+        <div class="setting-sub">Paused sites</div>
+        <div id="pausedHostsList" class="pause-list"></div>
+
+        <div class="setting-sub">Privacy Zones (built-in, always paused)</div>
+        <p class="setting-hint">Banking, health, auth, password managers, and adult sites are never captured. This list can't be disabled.</p>
+      </div>
+
+      <!-- ── Danger zone ────────────────────────────── -->
+      <div class="setting-section danger">
+        <label class="setting-label">Danger zone</label>
+        <button id="wipeAllBtn" class="action-btn danger">Erase all Meridian memory</button>
+        <p class="setting-hint">Deletes all captured pages, conversations, and research. Your API key and language settings are kept.</p>
+      </div>
     </div>
   </div>
 
