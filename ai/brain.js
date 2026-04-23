@@ -35,11 +35,13 @@ export class MeridianBrain {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || 'API error');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error (${res.status})`);
     }
     const data = await res.json();
-    return data.content[0].text;
+    const text = data?.content?.[0]?.text;
+    if (!text) throw new Error('Empty response from Claude');
+    return text;
   }
 
   formatEntries(entries) {

@@ -345,11 +345,19 @@ export class VoiceEngine {
     return { intent: 'ask', query: t, text: t };
   }
 
-  getAvailableVoices() { return this.voices.filter(v => v.lang.startsWith('en')); }
+  // Return voices for the active language (or all voices if 'auto' / unknown).
+  // Falls back to the full list so the dropdown is never empty on non-English systems.
+  getAvailableVoices() {
+    const active = this.detectedLang || this.langCode;
+    if (!active || active === 'auto') return this.voices;
+    const prefix = active.split('-')[0];
+    const matched = this.voices.filter(v => v.lang.toLowerCase().startsWith(prefix));
+    return matched.length ? matched : this.voices;
+  }
 
   setVoiceByIndex(i) {
-    const en = this.getAvailableVoices();
-    if (en[i]) this.preferredVoice = en[i];
+    const list = this.getAvailableVoices();
+    if (list[i]) this.preferredVoice = list[i];
   }
 
   destroy() {

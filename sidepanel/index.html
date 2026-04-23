@@ -39,14 +39,14 @@
   </header>
 
   <!-- Nav Tabs -->
-  <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="brain">Brain</button>
-    <button class="tab-btn" data-tab="research">Research</button>
-    <button class="tab-btn" data-tab="history">History</button>
-    <button class="tab-btn" data-tab="oracle">Oracle</button>
-    <button class="tab-btn" data-tab="shield">Shield</button>
-    <button class="tab-btn" data-tab="decision">Decision</button>
-    <button class="tab-btn" data-tab="graph">Graph</button>
+  <nav class="tab-nav" role="tablist" aria-label="Meridian sections">
+    <button class="tab-btn active" data-tab="brain"    role="tab" aria-selected="true"  aria-controls="tab-brain">Brain</button>
+    <button class="tab-btn"        data-tab="research" role="tab" aria-selected="false" aria-controls="tab-research">Research</button>
+    <button class="tab-btn"        data-tab="history"  role="tab" aria-selected="false" aria-controls="tab-history">History</button>
+    <button class="tab-btn"        data-tab="oracle"   role="tab" aria-selected="false" aria-controls="tab-oracle">Oracle</button>
+    <button class="tab-btn"        data-tab="shield"   role="tab" aria-selected="false" aria-controls="tab-shield">Shield</button>
+    <button class="tab-btn"        data-tab="decision" role="tab" aria-selected="false" aria-controls="tab-decision">Decision</button>
+    <button class="tab-btn"        data-tab="graph"    role="tab" aria-selected="false" aria-controls="tab-graph">Graph</button>
   </nav>
 
   <!-- First-run onboarding banner (shows only when no API key is set) -->

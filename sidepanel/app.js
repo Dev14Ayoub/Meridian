@@ -85,9 +85,13 @@ async function init() {
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
       if (btn.dataset.tab === 'graph')   loadGraph();
       if (btn.dataset.tab === 'history') loadActiveDates();
@@ -819,8 +823,13 @@ async function dispatchVoiceIntent(intent, lang = 'en') {
 
     case 'save': {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id) chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_TEXT' }).catch(() => {});
-      return 'Page saved to your Meridian memory.';
+      if (!tab?.id) return 'No active page to save.';
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: 'FORCE_CAPTURE' });
+        return 'Page saved to your Meridian memory.';
+      } catch {
+        return 'Could not save this page — try reloading it first.';
+      }
     }
 
     case 'navigate': {

@@ -14,9 +14,9 @@
     return clone.innerText?.replace(/\s+/g, ' ').trim().slice(0, 8000) || '';
   }
 
-  function capturePage() {
+  function capturePage({ force = false } = {}) {
     const text = extractText();
-    if (text.length < 200) return; // Skip low-content pages
+    if (!force && text.length < 200) return; // Skip low-content pages unless forced
 
     chrome.runtime.sendMessage({
       type: 'PAGE_CAPTURED',
@@ -50,6 +50,10 @@
   chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
     if (msg.type === 'GET_PAGE_TEXT') {
       sendResponse({ text: extractText(), url: location.href, title: document.title });
+    }
+    if (msg.type === 'FORCE_CAPTURE') {
+      capturePage({ force: true });
+      sendResponse({ ok: true });
     }
     if (msg.type === 'SHOW_PERSUASION_SHIELD') {
       showPersuasionOverlay(msg.tactics);
