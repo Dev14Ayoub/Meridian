@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian — Your persistent AI layer across the web</title>
+<meta name="description" content="A local-first Chrome extension that remembers your browsing, summarizes what you read, plans research, and surfaces manipulation — powered by your Claude API key." />
+<meta property="og:title" content="Meridian — Your persistent AI layer across the web" />
+<meta property="og:description" content="Local-first. No telemetry. Your Claude API key, your data, your machine." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="#a78bfa" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="3" fill="#a78bfa"/>
+      </svg>
+      Meridian
+    </a>
+    <div class="nav-links">
+      <a href="#pillars">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="https://github.com/Dev14Ayoub/Meridian">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero container">
+  <div class="hero-eyebrow">Now in open beta · v0.1</div>
+  <h1>Your persistent AI layer<br/>across the web.</h1>
+  <p>
+    Meridian remembers what you read, answers questions across every tab, plans deep research, and flags when a page
+    is trying to manipulate you. Local-first. No telemetry. Your Claude key, your data, your machine.
+  </p>
+  <div class="hero-ctas">
+    <a class="btn primary" href="https://chrome.google.com/webstore/detail/meridian" target="_blank" rel="noopener">
+      Add to Chrome — free
+    </a>
+    <a class="btn ghost" href="https://github.com/Dev14Ayoub/Meridian" target="_blank" rel="noopener">
+      View source on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- Pillars -->
+<section class="section" id="pillars">
+  <div class="container">
+    <h2>Six things Meridian does that your browser can't</h2>
+    <p class="section-sub">One side panel. Seven tabs. One brain that's always with you.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">🧠</div>
+        <h3>Brain</h3>
+        <p>Chat with an AI that actually remembers every page you've visited this session. No more re-pasting context.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🧭</div>
+        <h3>Research</h3>
+        <p>Drop a topic, get a research plan with search queries, key questions, and subtopics. One click opens them all.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">📅</div>
+        <h3>History recall</h3>
+        <p>"What did I read about last Tuesday?" Meridian answers with real recaps, not a flat URL list.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🔮</div>
+        <h3>Oracle</h3>
+        <p>Predicts what you'll ask next based on what you're reading. Surfaces knowledge gaps before you hit them.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🛡️</div>
+        <h3>Shield</h3>
+        <p>Scans any page for manipulation tactics — urgency, scarcity, dark patterns — and flags contradictions across sources.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">⚖️</div>
+        <h3>Decision engine</h3>
+        <p>"Should I buy a MacBook?" Get a readiness score, what you already know, and what you're still missing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust -->
+<section class="trust">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-item">
+        <h4>Local-first</h4>
+        <p>Everything lives in your browser's IndexedDB. We operate zero servers.</p>
+      </div>
+      <div class="trust-item">
+        <h4>Privacy Zones</h4>
+        <p>Banking, health, auth, password managers — never captured. Hard-blocked at source.</p>
+      </div>
+      <div class="trust-item">
+        <h4>Credential redaction</h4>
+        <p>API keys, cards, tokens, SSNs scrubbed before anything is stored.</p>
+      </div>
+      <div class="trust-item">
+        <h4>Your API key</h4>
+        <p>Calls Anthropic directly from your browser. We never see your key or your prompts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Voice callout -->
+<section class="section">
+  <div class="container">
+    <h2>Talk to it in any language</h2>
+    <p class="section-sub">
+      Tap the mic. Ask in English, French, Arabic, Spanish, Japanese — Meridian recognizes 20+ languages and replies in
+      the same voice. Real-time. Hands-free.
+    </p>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section" id="pricing">
+  <div class="container">
+    <h2>Pricing</h2>
+    <p class="section-sub">Bring your own Claude key. That's it.</p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Free forever</h3>
+        <div class="price">$0<small>/month</small></div>
+        <ul>
+          <li>All 6 pillars, all 7 tabs</li>
+          <li>Voice companion</li>
+          <li>Privacy Zones + redaction</li>
+          <li>Local-only storage</li>
+          <li>Uses your own Claude key</li>
+        </ul>
+        <a class="btn primary" href="https://chrome.google.com/webstore/detail/meridian" target="_blank" rel="noopener">
+          Add to Chrome
+        </a>
+      </div>
+
+      <div class="price-card featured">
+        <h3>Pro <span style="color: var(--accent2); font-size: 12px;">· coming soon</span></h3>
+        <div class="price">$6<small>/month</small></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Cross-device encrypted sync</li>
+          <li>File &amp; PDF upload into memory</li>
+          <li>Visual knowledge graph</li>
+          <li>Priority support</li>
+        </ul>
+        <a class="btn ghost" href="mailto:meridian.extension@proton.me?subject=Meridian%20Pro%20waitlist">
+          Join waitlist
+        </a>
+      </div>
+
+      <div class="price-card">
+        <h3>Teams</h3>
+        <div class="price">Custom</div>
+        <ul>
+          <li>Shared research workspaces</li>
+          <li>Admin controls &amp; SSO</li>
+          <li>Self-hosted option</li>
+          <li>Pooled billing</li>
+        </ul>
+        <a class="btn ghost" href="mailto:meridian.extension@proton.me?subject=Meridian%20Teams">
+          Talk to us
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="section">
+  <div class="container" style="text-align: center;">
+    <h2>Install in 30 seconds.</h2>
+    <p class="section-sub">Paste your Claude key once. Close the tab. Meridian is just there, every time you need it.</p>
+    <a class="btn primary" href="https://chrome.google.com/webstore/detail/meridian" target="_blank" rel="noopener">
+      Add Meridian to Chrome
+    </a>
+  </div>
+</section>
+
+<footer>
+  © 2026 Meridian · Built by a solo student founder ·
+  <a href="privacy.html">Privacy</a> ·
+  <a href="terms.html">Terms</a> ·
+  <a href="https://github.com/Dev14Ayoub/Meridian">GitHub</a> ·
+  <a href="mailto:meridian.extension@proton.me">Contact</a>
+</footer>
+
+</body>
+</html>

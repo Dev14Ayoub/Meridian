@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Meridian</title>
+<meta name="description" content="Meridian's privacy policy. Local-only storage, no telemetry, no third-party sharing." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="#a78bfa" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="3" fill="#a78bfa"/>
+      </svg>
+      Meridian
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </div>
+  </div>
+</nav>
+
+<article class="doc">
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: April 23, 2026</div>
+
+  <p>
+    Meridian is a Chrome extension that acts as a persistent AI layer across the web. It summarizes your browsing,
+    answers questions about what you've read, and helps you make better decisions. This policy explains exactly what
+    data Meridian touches, where it lives, and what we do — and do not — do with it.
+  </p>
+
+  <p>
+    <strong>The short version:</strong> Meridian stores everything locally on your device. We operate no servers, run
+    no analytics, and never see your data. Your Claude API key calls Anthropic directly from your browser. You can wipe
+    every byte Meridian has captured at any time with one click.
+  </p>
+
+  <h2>1. What Meridian captures</h2>
+  <p>When you visit a web page and stay on it for roughly 15 seconds, Meridian's content script extracts:</p>
+  <ul>
+    <li>Page URL and title</li>
+    <li>Main visible text content (with scripts, forms, inputs, and sensitive tags stripped)</li>
+    <li>Timestamp of the visit</li>
+  </ul>
+  <p>
+    This content is processed through a credential-redaction pass (see §4) and stored in an IndexedDB database named
+    <code>MeridianDB</code> inside your browser profile. It never leaves your machine except when you explicitly ask
+    Meridian a question — at which point it is sent to Anthropic's Claude API, using <em>your</em> API key, directly
+    from your browser.
+  </p>
+
+  <h2>2. What Meridian does NOT capture</h2>
+  <ul>
+    <li><strong>Privacy Zones are hard-blocked.</strong> Banking, payment, healthcare, government, authentication,
+      password-manager, dating, and adult sites are never captured. This is enforced in two places: the content script
+      refuses to send, and the service worker refuses to store. Examples of auto-skipped hosts: paypal.com, stripe.com,
+      chase.com, mychart.com, accounts.google.com, 1password.com, and any URL path matching
+      <code>/login</code>, <code>/signin</code>, <code>/oauth</code>, <code>/2fa</code>, <code>/checkout</code>,
+      <code>/payments</code>, or <code>/billing</code>.</li>
+    <li><strong>Paused sites</strong> you add yourself in Settings → Privacy &amp; Safety are also skipped.</li>
+    <li><strong>Form fields, password boxes, and input values</strong> are never read — the extractor ignores
+      <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, and <code>&lt;form&gt;</code> DOM nodes entirely.</li>
+    <li><strong>Incognito windows</strong> are not captured unless you explicitly grant Meridian incognito access in
+      <code>chrome://extensions</code>.</li>
+    <li><strong>Browser history outside of Meridian.</strong> We do not read your <code>chrome.history</code> API or
+      your bookmarks unless you use the History tab, and even then only summaries stay in local IndexedDB.</li>
+  </ul>
+
+  <h2>3. Where your data lives</h2>
+  <ul>
+    <li><strong>IndexedDB</strong> (<code>MeridianDB</code>, <code>MeridianHistoryDB</code>) — captured pages,
+      conversations, research plans, synthesis results.</li>
+    <li><strong>chrome.storage.local</strong> — your Claude API key, voice language preference, active mode,
+      paused-site list, tutorial-seen flag.</li>
+  </ul>
+  <p>
+    <strong>Nothing is synced to Google's cloud. Nothing is uploaded to any server we control. We do not operate a
+    server.</strong>
+  </p>
+
+  <h2>4. Credential redaction</h2>
+  <p>
+    Before any captured text is stored, Meridian runs a redaction pass that replaces the following patterns with
+    labeled placeholders (e.g. <code>[REDACTED_ANTHROPIC_KEY]</code>):
+  </p>
+  <ul>
+    <li>Anthropic API keys (<code>sk-ant-…</code>)</li>
+    <li>OpenAI API keys (<code>sk-…</code>)</li>
+    <li>GitHub personal access tokens (<code>ghp_…</code>)</li>
+    <li>Slack tokens (<code>xoxb-…</code>, <code>xoxp-…</code>)</li>
+    <li>AWS access keys (<code>AKIA…</code>)</li>
+    <li>JWT tokens (<code>eyJ…</code>)</li>
+    <li>Credit card numbers (validated with the Luhn checksum to reduce false positives)</li>
+    <li>US Social Security Numbers</li>
+    <li><code>password:</code>, <code>api_key=</code>, <code>Bearer &lt;token&gt;</code> inline patterns</li>
+  </ul>
+  <p>
+    The raw values are never written to disk. If a page accidentally contains a secret in its body text, Meridian
+    replaces it before persisting.
+  </p>
+
+  <h2>5. Third parties</h2>
+  <p>Meridian makes network requests to exactly one third party:</p>
+  <ul>
+    <li><strong>Anthropic</strong> (<code>api.anthropic.com</code>) — for Claude AI completions, using your own API
+      key, originating from your browser. Anthropic's data handling is governed by
+      <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic's Privacy Policy</a>.
+      At the time of writing, Anthropic does not use API inputs to train models.</li>
+  </ul>
+  <p>
+    Meridian does not use analytics (no Google Analytics, no Mixpanel, no Sentry), does not load third-party scripts or
+    fonts, does not embed tracking pixels, and does not contact any telemetry endpoint.
+  </p>
+
+  <h2>6. Prompt injection defense</h2>
+  <p>
+    When page text is sent to Claude for summarization or answering, Meridian wraps it in sentinel markers
+    (<code>&lt;&lt;&lt;MERIDIAN_UNTRUSTED_CONTEXT&gt;&gt;&gt;</code>) and instructs Claude to treat the wrapped content
+    as data, not instructions. This is a mitigation against malicious pages that try to smuggle commands into the
+    model. It is not a perfect defense, and you should remain skeptical of AI output about untrusted pages.
+  </p>
+
+  <h2>7. Your rights and controls</h2>
+  <ul>
+    <li><strong>Pause on this site</strong> — Settings → Privacy &amp; Safety. Stops capture on the current host.</li>
+    <li><strong>Clear conversation memory</strong> — Brain tab → Clear Memory. Drops chat history.</li>
+    <li><strong>Erase all Meridian memory</strong> — Settings → Danger zone. Wipes both IndexedDB databases
+      completely. Your API key and preferences stay, but every captured page, conversation, and synthesis is gone.</li>
+    <li><strong>Uninstall</strong> — removing the extension deletes its entire storage, per Chrome's extension
+      lifecycle.</li>
+  </ul>
+  <p>
+    Because Meridian stores data locally and we have no servers, there is nothing for us to delete on our side —
+    uninstall is complete deletion.
+  </p>
+
+  <h2>8. Children's privacy</h2>
+  <p>
+    Meridian is not directed at children under 13 and we do not knowingly collect data from them. Meridian collects no
+    data centrally in any case.
+  </p>
+
+  <h2>9. Changes to this policy</h2>
+  <p>
+    If this policy changes materially, we will update the "Last updated" date at the top and note the change in the
+    extension's release notes on GitHub. Continued use of the extension after a change constitutes acceptance.
+  </p>
+
+  <h2>10. Contact</h2>
+  <p>
+    Questions, concerns, or security reports: <a href="mailto:meridian.extension@proton.me">meridian.extension@proton.me</a>.
+    Source code and issue tracker: <a href="https://github.com/Dev14Ayoub/Meridian" target="_blank" rel="noopener">github.com/Dev14Ayoub/Meridian</a>.
+  </p>
+</article>
+
+<footer>
+  © 2026 Meridian ·
+  <a href="index.html">Home</a> ·
+  <a href="privacy.html">Privacy</a> ·
+  <a href="terms.html">Terms</a> ·
+  <a href="https://github.com/Dev14Ayoub/Meridian">GitHub</a>
+</footer>
+
+</body>
+</html>

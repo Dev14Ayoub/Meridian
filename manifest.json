@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Meridian — AI Browser Co-Pilot",
   "version": "1.0.0",
-  "description": "Your persistent AI layer on top of the internet. Memory, insight, and intelligence across every tab.",
+  "description": "Local-first AI side panel powered by your Claude API key. Remembers, researches, and protects across every tab.",
 
   "permissions": [
     "storage",
