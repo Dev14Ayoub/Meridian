@@ -26,27 +26,27 @@
         <option value="Debug">Debug</option>
         <option value="Shopping">Shopping</option>
       </select>
-      <button id="voiceBtn" class="icon-btn voice-idle-btn" title="Talk to Meridian">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button id="voiceBtn" class="icon-btn voice-idle-btn" title="Talk to Meridian" aria-label="Open voice companion">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
           <line x1="12" y1="19" x2="12" y2="23"/>
           <line x1="8" y1="23" x2="16" y2="23"/>
         </svg>
       </button>
-      <button id="settingsBtn" class="icon-btn" title="Settings">⚙</button>
+      <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Open settings">⚙</button>
     </div>
   </header>
 
   <!-- Nav Tabs -->
   <nav class="tab-nav" role="tablist" aria-label="Meridian sections">
-    <button class="tab-btn active" data-tab="brain"    role="tab" aria-selected="true"  aria-controls="tab-brain">Brain</button>
-    <button class="tab-btn"        data-tab="research" role="tab" aria-selected="false" aria-controls="tab-research">Research</button>
-    <button class="tab-btn"        data-tab="history"  role="tab" aria-selected="false" aria-controls="tab-history">History</button>
-    <button class="tab-btn"        data-tab="oracle"   role="tab" aria-selected="false" aria-controls="tab-oracle">Oracle</button>
-    <button class="tab-btn"        data-tab="shield"   role="tab" aria-selected="false" aria-controls="tab-shield">Shield</button>
-    <button class="tab-btn"        data-tab="decision" role="tab" aria-selected="false" aria-controls="tab-decision">Decision</button>
-    <button class="tab-btn"        data-tab="graph"    role="tab" aria-selected="false" aria-controls="tab-graph">Graph</button>
+    <button class="tab-btn active" data-tab="brain"    role="tab" aria-selected="true"  aria-controls="tab-brain"    tabindex="0"  id="tab-btn-brain">Brain</button>
+    <button class="tab-btn"        data-tab="research" role="tab" aria-selected="false" aria-controls="tab-research" tabindex="-1" id="tab-btn-research">Research</button>
+    <button class="tab-btn"        data-tab="history"  role="tab" aria-selected="false" aria-controls="tab-history"  tabindex="-1" id="tab-btn-history">History</button>
+    <button class="tab-btn"        data-tab="oracle"   role="tab" aria-selected="false" aria-controls="tab-oracle"   tabindex="-1" id="tab-btn-oracle">Oracle</button>
+    <button class="tab-btn"        data-tab="shield"   role="tab" aria-selected="false" aria-controls="tab-shield"   tabindex="-1" id="tab-btn-shield">Shield</button>
+    <button class="tab-btn"        data-tab="decision" role="tab" aria-selected="false" aria-controls="tab-decision" tabindex="-1" id="tab-btn-decision">Decision</button>
+    <button class="tab-btn"        data-tab="graph"    role="tab" aria-selected="false" aria-controls="tab-graph"    tabindex="-1" id="tab-btn-graph">Graph</button>
   </nav>
 
   <!-- First-run onboarding banner (shows only when no API key is set) -->
@@ -68,7 +68,7 @@
   </div>
 
   <!-- ===== TAB: SESSION BRAIN ===== -->
-  <section id="tab-brain" class="tab-content active">
+  <section id="tab-brain" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-brain" tabindex="0">
     <div class="chat-container" id="chatContainer">
       <div class="welcome-msg">
         <div class="welcome-icon">🧠</div>
@@ -81,8 +81,8 @@
       </div>
     </div>
     <div class="chat-input-row">
-      <input id="chatInput" type="text" placeholder="Ask about your browsing session..." />
-      <button id="chatSend" class="send-btn">↑</button>
+      <input id="chatInput" type="text" placeholder="Ask about your browsing session..." aria-label="Message to Meridian" />
+      <button id="chatSend" class="send-btn" aria-label="Send message">↑</button>
     </div>
     <div class="brain-actions">
       <button class="action-btn" id="exportBtn">Export Session</button>
@@ -91,7 +91,7 @@
   </section>
 
   <!-- ===== TAB: RESEARCH ===== -->
-  <section id="tab-research" class="tab-content">
+  <section id="tab-research" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-research" tabindex="0">
     <div class="section-header">
       <div class="section-icon">🔬</div>
       <div>
@@ -103,6 +103,11 @@
     <div class="research-input-row">
       <input id="researchTopic" type="text" placeholder="What do you want to research?" />
       <button id="buildPlanBtn" class="action-btn">Plan</button>
+    </div>
+
+    <div id="researchEmpty" class="empty-state">
+      <div class="empty-icon">🧭</div>
+      <div class="empty-text">Enter any topic — Meridian builds a full research plan with search queries, subtopics, and the key questions you need to answer.</div>
     </div>
 
     <div id="researchPlanBox" class="research-plan hidden">
@@ -139,7 +144,7 @@
   </section>
 
   <!-- ===== TAB: HISTORY ===== -->
-  <section id="tab-history" class="tab-content">
+  <section id="tab-history" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-history" tabindex="0">
     <div class="section-header">
       <div class="section-icon">📅</div>
       <div>
@@ -153,7 +158,11 @@
       <button id="getRecapBtn" class="action-btn">Recap</button>
     </div>
 
-    <div id="activeDatesList" class="active-dates"></div>
+    <div id="activeDatesList" class="active-dates">
+      <div class="empty-state small">
+        <div class="empty-text">Active days will appear here once you've been browsing.</div>
+      </div>
+    </div>
 
     <div id="recapResult" class="recap-box hidden">
       <div class="recap-meta">
@@ -172,7 +181,7 @@
   </section>
 
   <!-- ===== TAB: ORACLE ===== -->
-  <section id="tab-oracle" class="tab-content">
+  <section id="tab-oracle" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-oracle" tabindex="0">
     <div class="section-header">
       <div class="section-icon">🔮</div>
       <div>
@@ -197,7 +206,7 @@
   </section>
 
   <!-- ===== TAB: PERSUASION SHIELD ===== -->
-  <section id="tab-shield" class="tab-content">
+  <section id="tab-shield" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-shield" tabindex="0">
     <div class="section-header">
       <div class="section-icon">🛡️</div>
       <div>
@@ -225,7 +234,7 @@
   </section>
 
   <!-- ===== TAB: DECISION ===== -->
-  <section id="tab-decision" class="tab-content">
+  <section id="tab-decision" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-decision" tabindex="0">
     <div class="section-header">
       <div class="section-icon">⚖️</div>
       <div>
@@ -237,6 +246,11 @@
       <input id="decisionTopic" type="text" placeholder="What are you deciding? (e.g. buy a MacBook)" />
       <button id="runDecisionBtn" class="action-btn">Analyze</button>
     </div>
+    <div id="decisionEmpty" class="empty-state">
+      <div class="empty-icon">⚖️</div>
+      <div class="empty-text">Type what you're deciding above — Meridian scores your readiness based on what you've read.</div>
+    </div>
+
     <div id="decisionResult" class="decision-result hidden">
       <div class="score-ring-container">
         <svg viewBox="0 0 120 120" class="score-ring">
@@ -265,7 +279,7 @@
   </section>
 
   <!-- ===== TAB: KNOWLEDGE GRAPH ===== -->
-  <section id="tab-graph" class="tab-content">
+  <section id="tab-graph" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-graph" tabindex="0">
     <div class="section-header">
       <div class="section-icon">🌐</div>
       <div>
@@ -274,7 +288,12 @@
       </div>
     </div>
     <div id="graphStats" class="graph-stats"></div>
-    <div id="graphList" class="graph-list"></div>
+    <div id="graphList" class="graph-list">
+      <div class="empty-state">
+        <div class="empty-icon">🌱</div>
+        <div class="empty-text">Browse a few pages for 15+ seconds each to start growing your graph.</div>
+      </div>
+    </div>
     <div class="brain-actions">
       <button class="action-btn full" id="refreshGraphBtn">Refresh Graph</button>
     </div>
@@ -299,7 +318,7 @@
           <span class="toggle-track"></span>
           <span class="toggle-label">Continuous</span>
         </label>
-        <button id="closeVoiceBtn" class="icon-btn">✕</button>
+        <button id="closeVoiceBtn" class="icon-btn" aria-label="Close voice overlay">✕</button>
       </div>
     </div>
 
@@ -337,7 +356,7 @@
         </svg>
         <span id="voiceTapLabel">Tap to speak</span>
       </button>
-      <button id="voiceStopBtn" class="voice-stop-btn hidden" title="Stop speaking">
+      <button id="voiceStopBtn" class="voice-stop-btn hidden" title="Stop speaking" aria-label="Stop voice">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
       </button>
       <div class="voice-select-wrap">
@@ -365,7 +384,7 @@
     <div class="overlay-card">
       <div class="overlay-header">
         <h2>Settings</h2>
-        <button id="closeSettings" class="icon-btn">✕</button>
+        <button id="closeSettings" class="icon-btn" aria-label="Close settings">✕</button>
       </div>
       <label class="setting-label">Claude API Key</label>
       <div class="api-key-row">
@@ -423,6 +442,23 @@
         <label class="setting-label">Danger zone</label>
         <button id="wipeAllBtn" class="action-btn danger">Erase all Meridian memory</button>
         <p class="setting-hint">Deletes all captured pages, conversations, and research. Your API key and language settings are kept.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FIRST-RUN TUTORIAL ===== -->
+  <div id="tutorialOverlay" class="tutorial-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+    <div class="tutorial-backdrop"></div>
+    <div class="tutorial-card">
+      <div class="tutorial-step">Step <span id="tutorialStep">1</span> of 4</div>
+      <h3 id="tutorialTitle" class="tutorial-title">Welcome to Meridian</h3>
+      <p id="tutorialBody" class="tutorial-body"></p>
+      <div class="tutorial-actions">
+        <button id="tutorialSkip" class="action-btn ghost small">Skip</button>
+        <div class="tutorial-nav">
+          <button id="tutorialBack" class="action-btn ghost small" disabled>Back</button>
+          <button id="tutorialNext" class="action-btn small">Next</button>
+        </div>
       </div>
     </div>
   </div>

@@ -82,20 +82,35 @@ async function init() {
     if (sel) sel.value = stored.voiceLang;
   }
 
-  // Tab switching
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      btn.setAttribute('aria-selected', 'true');
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-      if (btn.dataset.tab === 'graph')   loadGraph();
-      if (btn.dataset.tab === 'history') loadActiveDates();
-      if (btn.dataset.tab === 'oracle')  loadOracle();
+  // Tab switching (click + ARIA roving tabindex)
+  const tabButtons = [...document.querySelectorAll('.tab-btn')];
+
+  function activateTab(btn, { focus = false } = {}) {
+    tabButtons.forEach(b => {
+      const active = b === btn;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+      b.setAttribute('tabindex', active ? '0' : '-1');
+    });
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${btn.dataset.tab}`)?.classList.add('active');
+    if (focus) btn.focus();
+    if (btn.dataset.tab === 'graph')   loadGraph();
+    if (btn.dataset.tab === 'history') loadActiveDates();
+    if (btn.dataset.tab === 'oracle')  loadOracle();
+  }
+
+  tabButtons.forEach((btn, idx) => {
+    btn.addEventListener('click', () => activateTab(btn));
+    btn.addEventListener('keydown', e => {
+      let target = null;
+      switch (e.key) {
+        case 'ArrowRight': target = tabButtons[(idx + 1) % tabButtons.length]; break;
+        case 'ArrowLeft':  target = tabButtons[(idx - 1 + tabButtons.length) % tabButtons.length]; break;
+        case 'Home':       target = tabButtons[0]; break;
+        case 'End':        target = tabButtons[tabButtons.length - 1]; break;
+      }
+      if (target) { e.preventDefault(); activateTab(target, { focus: true }); }
     });
   });
 
@@ -192,6 +207,77 @@ async function init() {
   });
 
   autoContradictionCheck();
+
+  // First-run tutorial (after API key exists, only shown once)
+  maybeShowTutorial();
+}
+
+// ── First-run tutorial ───────────────────────────────────
+const TUTORIAL_STEPS = [
+  {
+    title: 'Welcome to Meridian',
+    body: 'Your persistent AI layer across the web. I remember what you read, help you research, and spot manipulation on the pages you visit.'
+  },
+  {
+    title: '7 tabs, one brain',
+    body: 'Brain chats with me. Research plans deep dives. History recaps any day. Oracle predicts what you need next. Shield spots manipulation. Decision scores readiness. Graph shows everything.'
+  },
+  {
+    title: 'Talk to me in any language',
+    body: 'Tap the mic icon in the header to start a real-time voice conversation. I auto-detect the language you speak — English, French, Arabic, Spanish, Japanese, and more.'
+  },
+  {
+    title: 'Your privacy comes first',
+    body: 'Banking, health, auth, and password-manager sites are never captured. You can pause any other site in Settings. Erase all memory anytime from the Danger zone.'
+  }
+];
+
+let tutorialIndex = 0;
+
+async function maybeShowTutorial() {
+  try {
+    const { tutorialSeen, apiKey } = await chrome.storage.local.get(['tutorialSeen', 'apiKey']);
+    if (tutorialSeen || !apiKey) return; // wait until they've set a key
+    showTutorial();
+  } catch {}
+}
+
+function showTutorial() {
+  tutorialIndex = 0;
+  renderTutorialStep();
+  document.getElementById('tutorialOverlay')?.classList.remove('hidden');
+
+  document.getElementById('tutorialNext')?.addEventListener('click', nextTutorial);
+  document.getElementById('tutorialBack')?.addEventListener('click', prevTutorial);
+  document.getElementById('tutorialSkip')?.addEventListener('click', closeTutorial);
+}
+
+function renderTutorialStep() {
+  const step = TUTORIAL_STEPS[tutorialIndex];
+  document.getElementById('tutorialStep').textContent = (tutorialIndex + 1);
+  document.getElementById('tutorialTitle').textContent = step.title;
+  document.getElementById('tutorialBody').textContent  = step.body;
+  document.getElementById('tutorialBack').disabled = tutorialIndex === 0;
+  document.getElementById('tutorialNext').textContent =
+    tutorialIndex === TUTORIAL_STEPS.length - 1 ? 'Got it' : 'Next';
+}
+
+function nextTutorial() {
+  if (tutorialIndex < TUTORIAL_STEPS.length - 1) {
+    tutorialIndex++;
+    renderTutorialStep();
+  } else {
+    closeTutorial();
+  }
+}
+
+function prevTutorial() {
+  if (tutorialIndex > 0) { tutorialIndex--; renderTutorialStep(); }
+}
+
+async function closeTutorial() {
+  document.getElementById('tutorialOverlay')?.classList.add('hidden');
+  try { await chrome.storage.local.set({ tutorialSeen: true }); } catch {}
 }
 
 // ── Session Brain ─────────────────────────────────────────
@@ -207,14 +293,16 @@ async function sendChat() {
   try {
     const res = await send('ASK_BRAIN', { query, mode: getMode() });
     loader.remove();
-    if (res?.error === 'NO_API_KEY') {
+    if (res?.error === 'NO_API_KEY' || /api.?key/i.test(res?.error || '')) {
       apiKeyPromptMsg();
+    } else if (res?.error) {
+      msg(`Error: ${res.error}`, 'ai');
     } else {
       msg(res?.answer || 'No response.', 'ai');
     }
-  } catch {
+  } catch (err) {
     loader.remove();
-    apiKeyPromptMsg();
+    msg(`Connection failed: ${err?.message || 'unknown error'}`, 'ai');
   }
 }
 
@@ -239,10 +327,18 @@ async function exportSession() {
   try {
     const res = await send('GET_SESSION_SUMMARY', { mode: getMode() });
     loader.remove();
+    if (res?.error) {
+      msg(`Export failed: ${res.error}`, 'ai');
+      return;
+    }
+    if (!res?.summary) {
+      msg('Nothing to export yet — try browsing a few pages first.', 'ai');
+      return;
+    }
     downloadText(res.summary, `meridian-session-${new Date().toISOString().slice(0,10)}.txt`);
-  } catch {
+  } catch (err) {
     loader.remove();
-    msg('Export failed.', 'ai');
+    msg(`Export failed: ${err?.message || 'unknown error'}`, 'ai');
   }
 }
 
@@ -308,6 +404,7 @@ function renderResearchPlan(plan) {
   document.getElementById('planSubtopics').innerHTML =
     (plan.subtopics || []).map(s => `<span class="plan-tag">${escapeHtml(s)}</span>`).join('');
 
+  document.getElementById('researchEmpty')?.classList.add('hidden');
   document.getElementById('researchPlanBox').classList.remove('hidden');
 }
 
@@ -537,8 +634,14 @@ async function runDecision() {
   btn.textContent = 'Analyzing…'; btn.disabled = true;
   try {
     const res = await send('GET_DECISION_SCORE', { topic });
-    if (res?.score !== undefined) { renderDecisionScore(res); result.classList.remove('hidden'); }
-  } catch {}
+    if (res?.score !== undefined) {
+      renderDecisionScore(res);
+      document.getElementById('decisionEmpty')?.classList.add('hidden');
+      result.classList.remove('hidden');
+    }
+  } catch {
+    alert('Could not analyze. Check your API key in Settings.');
+  }
   btn.textContent = 'Analyze'; btn.disabled = false;
 }
 
@@ -571,7 +674,12 @@ async function loadGraph() {
   const list  = document.getElementById('graphList');
   const items = entries?.results || [];
   if (!items.length) {
-    list.innerHTML = '<div class="loading-state">Browse some pages to build your graph.</div>'; return;
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🌱</div>
+        <div class="empty-text">Browse a few pages for 15+ seconds each to start growing your graph.</div>
+      </div>`;
+    return;
   }
   list.innerHTML = items.map(e => `
     <div class="graph-entry">
@@ -695,6 +803,8 @@ async function saveApiKey() {
   document.getElementById('keyStatus').textContent = '✓ Saved successfully';
   document.getElementById('keyStatus').className = 'key-status ok';
   await refreshOnboardingBanner();
+  // If this is the first key they've saved, kick off the tutorial
+  maybeShowTutorial();
 }
 
 async function refreshOnboardingBanner() {
